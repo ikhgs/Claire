@@ -16,33 +16,32 @@ MODEL_URL = 'https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vis
 
 @app.route('/api/formation', methods=['POST'])
 def formation():
-    try:
-        image_url = request.form.get('image_url')
-        prompt = request.form.get('prompt')
+    try:
+        image_url = request.form.get('image_url')
+        prompt = request.form.get('prompt')
 
-        if not image_url or not prompt:
-            return jsonify({'error': 'Image URL and prompt are required'}), 400
+        if not image_url or not prompt:
+            return jsonify({'error': 'Image URL and prompt are required'}), 400
 
-        # Test de l'URL de l'image
-        response = requests.get(image_url)
-        if response.status_code != 200:
-            return jsonify({'error': 'Failed to access the image URL'}), 400
+        # Test de l'URL de l'image
+        response = requests.get(image_url)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to access the image URL'}), 400
 
-        # Préparation des entrées pour le modèle
-        inference_params = dict(temperature=0.2, max_tokens=100)
-        multi_inputs = Inputs.get_multimodal_input(input_id="", image_url=image_url, raw_text=prompt)
+        # Préparation des entrées pour le modèle
+        inference_params = dict(temperature=0.2, max_tokens=100)
+        multi_inputs = Inputs.get_multimodal_input(input_id="", image_url=image_url, raw_text=prompt)
 
-        # Prédiction du modèle
-        model_prediction = Model(url=MODEL_URL, pat=CLARIFAI_PAT).predict(
-            inputs=[multi_inputs],
-            inference_params=inference_params,
-        )
+        # Prédiction du modèle
+        model_prediction = Model(url=MODEL_URL, pat=CLARIFAI_PAT).predict(
+            inputs=[multi_inputs],
+            inference_params=inference_params,
+        )
 
-        response_text = model_prediction.outputs[0].data.text.raw
-        return jsonify({'response': response_text})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        response_text = model_prediction.outputs[0].data.text.raw
+        return jsonify({'response': response_text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(host='0.0.0.0', port=5000, debug=True)
