@@ -43,5 +43,32 @@ def formation():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/query', methods=['GET'])
+def query_prompt():
+    prompt = request.args.get('prompt')
+    if not prompt:
+        return jsonify({"error": "Prompt is required."}), 400
+
+    try:
+        # Prendre en compte que vous devrez remplacer la partie suivante
+        # avec la logique correcte pour obtenir et utiliser votre modèle
+        # Vous devez créer et configurer le modèle approprié ici
+        model = Model(url=MODEL_URL, pat=CLARIFAI_PAT)  # Exemple de création du modèle
+
+        # Créer la session de chat avec le prompt
+        chat_session = model.start_chat(
+            history=[
+                {
+                    "role": "user",
+                    "parts": [prompt],
+                },
+            ]
+        )
+
+        response = chat_session.send_message(prompt)
+        return jsonify({"response": response.text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
