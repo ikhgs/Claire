@@ -68,10 +68,14 @@ def query_prompt():
             stop=None,
         )
 
+        # Vérifier si la complétion est un tuple et en extraire le contenu
+        if isinstance(completion, tuple):
+            completion = completion[0]
+
         # Extraction du texte de réponse
         response_text = ""
-        for chunk in completion:
-            response_text += chunk.choices[0].delta.content or ""
+        for chunk in completion['choices']:
+            response_text += chunk['message']['content']
 
         return jsonify({"response": response_text})
     except Exception as e:
@@ -79,4 +83,3 @@ def query_prompt():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-    
