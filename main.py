@@ -1,17 +1,18 @@
 from flask import Flask, request, jsonify
-from clarifai.client.model import Model
-from clarifai.client.input import Inputs
 import os
 from dotenv import load_dotenv
 import requests
+from groq import Groq
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
 app = Flask(__name__)
 
-# Obtenir la clé API depuis les variables d'environnement
+# Obtenir les clés API depuis les variables d'environnement
 CLARIFAI_PAT = os.getenv('CLARIFAI_PAT')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+
 MODEL_URL = 'https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vision'
 
 @app.route('/api/formation', methods=['POST'])
@@ -50,25 +51,32 @@ def query_prompt():
         return jsonify({"error": "Prompt is required."}), 400
 
     try:
-        # Prendre en compte que vous devrez remplacer la partie suivante
-        # avec la logique correcte pour obtenir et utiliser votre modèle
-        # Vous devez créer et configurer le modèle approprié ici
-        model = Model(url=MODEL_URL, pat=CLARIFAI_PAT)  # Exemple de création du modèle
-
-        # Créer la session de chat avec le prompt
-        chat_session = model.start_chat(
-            history=[
+        # Utilisation de Groq Mistral AI avec clé API
+        client = Groq(api_key=GROQ_API_KEY)  # Incluez la clé API ici
+        completion = client.chat.completions.create(
+            model="gemma2-9b-it",  # Spécifiez le modèle que vous utilisez
+            messages=[
                 {
                     "role": "user",
-                    "parts": [prompt],
-                },
-            ]
+                    "content": prompt
+                }
+            ],
+            temperature=1,
+            max_tokens=1024,
+            top_p=1,
+            stream=False,
+            stop=None,
         )
 
-        response = chat_session.send_message(prompt)
-        return jsonify({"response": response.text})
+        # Extraction du texte de réponse
+        response_text = ""
+        for chunk in completion:
+            response_text += chunk.choices[0].delta.content or ""
+
+        return jsonify({"response": response_text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+    
