@@ -2,4 +2,3 @@ flask
 requests
 clarifai
 python-dotenv
-groq
